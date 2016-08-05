@@ -67,7 +67,7 @@ class SeaWeatherCrawler implements  Crawler{
     }
     public function run(){
         /****************************************
-         * 获取沿海数据 
+         * 获取沿海数据
          * **************************************/
         defined('COAST_ELEMENTS')   or define('COAST_ELEMENTS',5);
         defined('OFFSHORE_ELEMENTS')   or define('OFFSHORE_ELEMENTS',6);
