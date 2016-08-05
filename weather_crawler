@@ -1,0 +1,181 @@
+<?php
+interface Crawler{
+    public function connectDb($dbPath); //连接数据库
+    public function getHtmlContents($begin = array(),$end ='',$offset=0); //获取html页面内容,begin - end 截取段的首位标记字符,因为可能要连截取几次才能获得开头位置，所以用数组为参数,一般为非关联数组,$offset为再最终begin定位的基础上再偏移多少
+    public function setNavigateUrl($url);//设置需要爬取的url
+    public function updateToDb();//更新到数据库
+    public function run();//开始执行采集
+}
+class SeaWeatherCrawler implements  Crawler{
+    public function __construct($url = '',$dbPath=''){
+        $this->connectDb($dbPath);
+        $this->url = $url;
+        $this->data = array('_id'=>'sea_weather_'.date('Ymd',time()),'coast'=>array(),'offshore'=>array(),'ocean'=>array());
+    }
+    public function connectDb($dbPath){
+        try
+        {
+            $connection = new Mongo($dbPath);
+        }
+        catch ( MongoConnectionException $e )
+        {
+            echo $e->getMessage();
+            exit();
+        }
+        $this->collection=$connection->tianqi->sea_weather;
+    }
+    public function UpdateToDb()
+    {
+        // TODO: Implement UpdateToDb() method.
+        $this->collection->update(array('_id'=>'sea_weather_'.date('Ymd',time())),$this->data,array("upsert" => true));
+    }
+
+    public function getHtmlContents($begin = array(),$end ='',$offset=0){
+        $html = file_get_contents($this->url);
+        if(strlen($html)==0){
+            die("获取的html文本为空,url=".$this->url);
+        }
+        foreach($begin as $key=>$value){
+            $pos = strpos($html,$value);
+            if($pos !== false){
+                $html = substr($html,$pos+strlen($value));
+            }
+            else
+            {
+                die("定位begin标记位失败");
+            }
+        }
+        $html = substr($html,$offset);
+        if($end !== ''){
+            $pos = strpos($html,$end);
+            if($pos !== false) {
+                $html = substr($html, 0, $pos);
+            }
+            else
+            {
+                die("定位end标记位失败");
+            }
+        }
+        if(strlen($html)==0)
+            die("获取的html最终数据为空");
+        return $html;
+    }
+    public function setNavigateUrl($url)
+    {
+        // TODO: Implement setNavigateUrl() method.
+        $this->url = $url;
+    }
+    public function run(){
+        /****************************************
+         * 获取沿海数据
+         * **************************************/
+        defined('COAST_ELEMENTS')   or define('COAST_ELEMENTS',5);
+        defined('OFFSHORE_ELEMENTS')   or define('OFFSHORE_ELEMENTS',6);
+        defined('OCEAN_ELEMENTS')   or define('OCEAN_ELEMENTS',6);
+        $html = $this->getHtmlContents(array('tbody','tbody','tbody','tbody'),'</tbody>',2);
+        preg_match_all('/(?<=>).*?(?=<)/',$html,$value, PREG_SET_ORDER);
+        if(!count($value))
+            die('匹配value失败'.$this->url);
+        $trunkLen = 0;
+        $arrayLen = count($value);
+        $index = 0;
+        for($i=2;$i<$arrayLen;$i++){
+            if($value[1] == $value[$i]) {
+                $trunkLen = ($i-2)/COAST_ELEMENTS;   //5代表沿海一共5个字段
+                break;
+            }
+        }
+        $data = array();
+        $sea_number=count($value)/(COAST_ELEMENTS*$trunkLen+1);
+        for($i=0;$i<$sea_number;++$i){
+            $data[]=array('name'=>$value[$index++][0],'data'=>array());
+            for($j=0;$j<$trunkLen;++$j){
+                $weather=array();
+                $weather['time']=$value[$index++][0];
+                $weather['weather']=$value[$index++][0];
+                $weather['wind']=$value[$index++][0];
+                $weather['windspeed']=$value[$index++][0];
+                $weather['visibility']=$value[$index++][0];
+                $data[$i]['data'][]=$weather;
+            }
+        }
+        $this->data['coast']=$data;
+        /****************************************
+         * 获取近海数据
+         * **************************************/
+        $this->setNavigateUrl('http://www.nmc.cn/publish/marine/offshore.html');
+        $html = $this->getHtmlContents(array('tbody','tbody','tbody','tbody'),'</tbody>',2);
+        preg_match_all('/(?<=>).*?(?=<)/',$html,$value, PREG_SET_ORDER);
+        if(!count($value))
+            die('匹配value失败'.$this->url);
+        $trunkLen = 0;
+        $arrayLen = count($value);
+        $index = 0;
+        for($i=2;$i<$arrayLen;$i++){
+            if($value[1] == $value[$i]) {
+                $trunkLen = ($i-2)/OFFSHORE_ELEMENTS;   //5代表沿海一共5个字段
+                break;
+            }
+        }
+        $data = array();
+        $sea_number=count($value)/(OFFSHORE_ELEMENTS*$trunkLen+1);
+        for($i=0;$i<$sea_number;++$i){
+            $data[]=array('name'=>$value[$index++][0],'data'=>array());
+            for($j=0;$j<$trunkLen;++$j){
+                $weather=array();
+                $weather['time']=$value[$index++][0];
+                $weather['weather']=$value[$index++][0];
+                $weather['wind']=$value[$index++][0];
+                $weather['windspeed']=$value[$index++][0];
+                $weather['wave']=$value[$index++][0];
+                $weather['visibility']=$value[$index++][0];
+                $data[$i]['data'][]=$weather;
+            }
+        }
+        $this->data['offshore']=$data;
+        /****************************************
+         * 获取远海数据
+         * **************************************/
+        $this->setNavigateUrl('http://www.nmc.cn/publish/marine/ocean.html');
+        $html = $this->getHtmlContents(array('tbody','tbody','tbody','tbody'),'</tbody>',2);
+        preg_match_all('/(?<=>).*?(?=<)/',$html,$value, PREG_SET_ORDER);
+        if(!count($value))
+            die('匹配value失败'.$this->url);
+        $trunkLen = 0;
+        $arrayLen = count($value);
+        $index = 0;
+        for($i=2;$i<$arrayLen;$i++){
+            if($value[1] == $value[$i]) {
+                $trunkLen = ($i-2)/OFFSHORE_ELEMENTS;   //5代表沿海一共5个字段
+                break;
+            }
+        }
+        $data = array();
+        $sea_number=count($value)/(OFFSHORE_ELEMENTS*$trunkLen+1);
+        for($i=0;$i<$sea_number;++$i){
+            $data[]=array('name'=>$value[$index++][0],'data'=>array());
+            for($j=0;$j<$trunkLen;++$j){
+                $weather=array();
+                $weather['time']=$value[$index++][0];
+                $weather['weather']=$value[$index++][0];
+                $weather['wind']=$value[$index++][0];
+                $weather['windspeed']=$value[$index++][0];
+                $weather['wave']=$value[$index++][0];
+                $weather['visibility']=$value[$index++][0];
+                $data[$i]['data'][]=$weather;
+            }
+        }
+        $this->data['ocean']=$data;
+        /*echo '<pre>';
+        print_r($this->data);
+        echo '</pre>';*/
+        $this->updateToDb();
+    }
+    protected $url;
+    protected $data;
+    protected $collection;
+}
+
+$swcrawler = new SeaWeatherCrawler('http://www.nmc.cn/publish/marine/newcoastal.html','192.168.1.250:20000');
+$swcrawler->run();
+echo '采集完成';
