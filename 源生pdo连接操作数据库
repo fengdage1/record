@@ -1,0 +1,5 @@
+try{
+			$pdo = new \PDO("mysql:host=localhost;dbname=my_testdb","root","333221abc");
+		}catch (PDOException $e) {
+			echo 'Connection failed: ' . $e->getMessage();
+		}
