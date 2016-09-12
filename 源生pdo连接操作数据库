@@ -1,5 +1,11 @@
 try{
-			$pdo = new \PDO("mysql:host=localhost;dbname=my_testdb","root","333221abc");
-		}catch (PDOException $e) {
-			echo 'Connection failed: ' . $e->getMessage();
-		}
+	$pdo = new \PDO("mysql:host=localhost;dbname=my_testdb","root","333221abc");
+}catch (PDOException $e) {
+	echo 'Connection failed: ' . $e->getMessage();
+}
+while($row = $result->fetch()){
+	echo '<pre>';
+	print_r($row);
+	echo '</pre>';
+	}
+//$result_arr = $result->fetchAll();  //直接转换成数组，不适用于大量数据
