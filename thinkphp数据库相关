@@ -1,7 +1,7 @@
 //表名persons,表前缀空,类型mysql,账户名root,密码333221abc,数据库地址localhost,数据库名my_testdb
 $n = new \Home\Model\TestdModel('persons','','mysql://root:333221abc@localhost/my_testdb');
-$d = D('Testd'); //相当于new \Home\Model\TestdModel('persons','','mysql://root:333221abc@localhost/my_testdb');
-$m = M('\Home\Model\TestdModel:persons','','mysql://root:333221abc@localhost/my_testdb');
+$d = D('Testd'); //不建议用D方法，太智能，失败后会到处找，甚至最后调用M方法，造成未知结果
+$m = M('\Home\Model\TestdModel:persons','','mysql://root:333221abc@localhost/my_testdb'); //用这种方法不如用new
 $m = M('persons','','mysql://root:333221abc@localhost/my_testdb'); //该方法是创建默认think\model对象，速度更快，适合简单增删改查
 
 //切换数据库
