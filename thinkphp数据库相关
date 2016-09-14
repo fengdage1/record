@@ -8,4 +8,4 @@ $m = M('persons','','mysql://root:333221abc@localhost/my_testdb'); //该方法�
 $this->db(1,"mysql://root:123456@localhost:3306/test")->query("查询SQL");
 $this->db(2,"mysql://root:123456@localhost:3306/test2")->query("查询SQL");
 //切换数据库指定表名
-$this->db(1)->table("top_user")->find();
+$this->db(1)->table("top_user")->find();//第二次db方法切换数据库不需要指定连接信息
