@@ -1,0 +1,2 @@
+strUtf8 = iconv('GB2312', 'UTF-8', $str); //gbk转utf8
+strGbk = iconv("UTF-8", "GB2312//IGNORE", $str); //utf8转gbk
