@@ -3,6 +3,8 @@ try{
 }catch (PDOException $e) {
 	echo 'Connection failed: ' . $e->getMessage();
 }
+$pdo->exec('set names utf8');
+$result = $db->query("SELECT* FROM foo");
 while($row = $result->fetch()){
 	echo '<pre>';
 	print_r($row);
