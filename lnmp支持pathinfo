@@ -1,42 +1,38 @@
 //ubuntu下路径为 /etc/nginx//sites-available/default 文件， 修改完重启nginx
 server {
-  2   listen 80 default_server;
-  3   listen [::]:80 default_server ipv6only=on;
-  4
-  5   root /usr/share/nginx/html;
-  6   index index.php index.html index.htm;
-  7
-  8   server_name server_domain_name_or_IP;
-  9
- 10   location / {
- 11     index  index.htm index.html index.php;
- 12     if (!-e $request_filename) {
- 13       rewrite  ^/(.*)$  /index.php/$1  last;
- 14       break;
- 15     }
- 16   }
- 17
- 18   error_page 404 /404.html;
- 19   error_page 500 502 503 504 /50x.html;
- 20   location = /50x.html {
- 21     root /usr/share/nginx/html;
- 22   }
- 23
- 24   location ~ .+\.php($|/) {
- 25     fastcgi_pass unix:/var/run/php5-fpm.sock;
- 26     fastcgi_index index.php;
- 27     include fastcgi_params;
- 28     #设置PATH_INFO并改写SCRIPT_FILENAME,SCRIPT_NAME服务器环境变量
- 29     set $fastcgi_script_name2 $fastcgi_script_name;
- 30     if ($fastcgi_script_name ~ "^(.+\.php)(/.+)$") {
- 31       set $fastcgi_script_name2 $1;
- 32       set $path_info $2;
- 33     }
- 34     fastcgi_param   PATH_INFO $path_info;
- 35     fastcgi_param   SCRIPT_FILENAME   $document_root$fastcgi_script_name2;
- 36     fastcgi_param   SCRIPT_NAME   $fastcgi_script_name2;
- 37   }
- 38 }
+listen 80 default_server;
+listen [::]:80 default_server ipv6only=on;
+
+root /usr/share/nginx/html;
+index index.php index.html index.htm;
+server_name server_domain_name_or_IP;
+location / {
+index  index.htm index.html index.php;
+if (!-e $request_filename) {
+rewrite  ^/(.*)$  /index.php/$1  last;
+break;
+}
+}
+error_page 404 /404.html;
+error_page 500 502 503 504 /50x.html;
+location = /50x.html {
+root /usr/share/nginx/html;
+}
+location ~ .+\.php($|/) {
+fastcgi_pass unix:/var/run/php5-fpm.sock;
+fastcgi_index index.php;
+include fastcgi_params;
+#设置PATH_INFO并改写SCRIPT_FILENAME,SCRIPT_NAME服务器环境变量
+set $fastcgi_script_name2 $fastcgi_script_name;
+if ($fastcgi_script_name ~ "^(.+\.php)(/.+)$") {
+set $fastcgi_script_name2 $1;
+set $path_info $2;
+}
+fastcgi_param   PATH_INFO $path_info;
+fastcgi_param   SCRIPT_FILENAME   $document_root$fastcgi_script_name2;
+fastcgi_param   SCRIPT_NAME   $fastcgi_script_name2;
+}
+}
 
 
 //////////////////////////////////////2
