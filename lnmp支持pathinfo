@@ -20,7 +20,7 @@ root /usr/share/nginx/html;
 }
 location ~ .+\.php($|/) {
 fastcgi_pass unix:/var/run/php5-fpm.sock;
-fastcgi_index index.php;
+fastcgi_index index.php; //此处有可能是index,例如在thinkphp中需如此配置
 include fastcgi_params;
 #设置PATH_INFO并改写SCRIPT_FILENAME,SCRIPT_NAME服务器环境变量
 set $fastcgi_script_name2 $fastcgi_script_name;
