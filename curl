@@ -17,6 +17,7 @@
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);  
   curl_setopt($ch, CURLOPT_HTTPHEADER, $headerArr);  //加入自定义包头信息
   curl_setopt($ch, CURLOPT_HEADER, true); //设置返回字符串包括HTTP包头
+  #curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //忽略https
   $contents = curl_exec($ch); 
   curl_close($ch); 
   **************************************************************************/
